@@ -34,7 +34,7 @@ import UIKit
   
   init(control: UITextField) {
     self.control = control
-    control.addTarget(self, action: Selector("editingChanged:"), forControlEvents: .EditingChanged)
+    control.addTarget(self, action: Selector("editingChanged:"), forControlEvents: .EditingDidEnd)
   }
   
   func editingChanged(control: UITextField) {
