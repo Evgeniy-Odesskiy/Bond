@@ -42,7 +42,7 @@ import UIKit
   }
   
   deinit {
-    control?.removeTarget(self, action: nil, forControlEvents: .EditingChanged)
+    control?.removeTarget(self, action: nil, forControlEvents: .EditingDidEnd)
   }
 }
 
