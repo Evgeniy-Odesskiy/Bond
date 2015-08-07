@@ -403,6 +403,194 @@ private class DynamicArrayMapProxy<T, U>: DynamicArray<U> {
   }
 }
 
+private class DynamicArrayMapProxy2<T, U>: DynamicArray<U> {
+  private unowned var sourceArray: DynamicArray<T>
+  private let mapf: (T, Int) -> Dynamic<U>
+  private let bond: ArrayBond<T>
+  private var mappedElems = [Dynamic<U>]()
+  private var elemsBonds = [Bond<U>]()
+  private var dynFirst_ = Dynamic<U?>(nil)
+
+  
+  private init(sourceArray: DynamicArray<T>, mapf: (T, Int) -> Dynamic<U>) {
+    self.sourceArray = sourceArray
+    self.mapf = mapf
+    self.bond = ArrayBond<T>()
+    self.bond.bind(sourceArray, fire: false)
+    super.init([])
+    
+    for (i, val) in enumerate(sourceArray) {
+      let mappedElem = self.mapf(val, i)
+      var elemBond = Bond<U>()
+      elemBond.listener = { newValue in
+        self.dispatchDidUpdate([find(self.elemsBonds, elemBond)!])
+      };
+      mappedElem.bindTo(elemBond, fire: false)
+      self.mappedElems.insert(mappedElem, atIndex: i)
+      self.elemsBonds.insert(elemBond, atIndex: i)
+    }
+    
+    self.dynFirst_.value = self.mappedElems.first?.value
+    
+    bond.willInsertListener = { [unowned self] array, i in
+      self.dispatchWillInsert(i)
+    }
+    
+    bond.didInsertListener = { [unowned self] array, indices in
+      for i in indices {
+        let mappedElem = self.mapf(self.sourceArray[i], i)
+        var elemBond = Bond<U>()
+        elemBond.listener = { newValue in
+          self.dispatchDidUpdate([find(self.elemsBonds, elemBond)!])
+        };
+        mappedElem.bindTo(elemBond, fire: false)
+        self.mappedElems.insert(mappedElem, atIndex: i)
+        self.elemsBonds.insert(elemBond, atIndex: i)
+      }
+      
+      
+      self.dispatchDidInsert(indices)
+      self.dynFirst_.value = self.mappedElems.first?.value
+    }
+    
+    bond.willRemoveListener = { [unowned self] array, indices in
+      for i in indices {
+        self.elemsBonds[i].unbindAll()
+      }
+      
+      var mutIndices = indices
+      mutIndices.sort(>)
+      for i in mutIndices {
+        self.mappedElems.removeAtIndex(i)
+        self.elemsBonds.removeAtIndex(i)
+      }
+        
+      self.dispatchWillRemove(indices)
+    }
+    
+    bond.didRemoveListener = { [unowned self] array, i in
+      self.dispatchDidRemove(i)
+      self.dynFirst_.value = self.mappedElems.first?.value
+    }
+    
+    bond.willUpdateListener = { [unowned self] array, i in
+      self.dispatchWillUpdate(i)
+    }
+    
+    bond.didUpdateListener = { [unowned self] array, i in
+      self.dispatchDidUpdate(i)
+      self.dynFirst_.value = self.mappedElems.first?.value
+    }
+    
+    bond.willResetListener = { [unowned self] array in
+      self.dispatchWillReset()
+    }
+    
+    bond.didResetListener = { [unowned self] array in
+      self.dispatchDidReset()
+      self.dynFirst_.value = self.mappedElems.first?.value
+    }
+  }
+  
+  override var value: [U] {
+    set(newValue) {
+      fatalError("Modifying proxy array is not supported!")
+    }
+    get {
+      fatalError("Getting proxy array value is not supported!")
+    }
+  }
+  
+  override var count: Int {
+    return sourceArray.count
+  }
+  
+  override var capacity: Int {
+    return sourceArray.capacity
+  }
+  
+  override var isEmpty: Bool {
+    return sourceArray.isEmpty
+  }
+  
+  override var first: U? {
+    if let first = sourceArray.first {
+      return mapf(first, 0).value
+    } else {
+      return nil
+    }
+  }
+  
+  override var last: U? {
+    if let last = sourceArray.last {
+      return mapf(last, sourceArray.count - 1).value
+    } else {
+      return nil
+    }
+  }
+
+//    var dynFirst: Dynamic<U>? {
+//        if let first = sourceArray.first {
+//            return mapf(first, 0)
+//        } else {
+//            return nil
+//        }
+//    }
+//    
+//    var dynLast: Dynamic<U>? {
+//        if let last = sourceArray.last {
+//            return mapf(last, sourceArray.count - 1)
+//        } else {
+//            return nil
+//        }
+//    }
+
+  
+  
+  override func setArray(newValue: [U]) {
+    fatalError("Modifying proxy array is not supported!")
+  }
+  
+  override func append(newElement: U) {
+    fatalError("Modifying proxy array is not supported!")
+  }
+  
+  override func append(array: Array<U>) {
+    fatalError("Modifying proxy array is not supported!")
+  }
+  
+  override func removeLast() -> U {
+    fatalError("Modifying proxy array is not supported!")
+  }
+  
+  override func insert(newElement: U, atIndex i: Int) {
+    fatalError("Modifying proxy array is not supported!")
+  }
+  
+  override func splice(array: Array<U>, atIndex i: Int) {
+    fatalError("Modifying proxy array is not supported!")
+  }
+  
+  override func removeAtIndex(index: Int) -> U {
+    fatalError("Modifying proxy array is not supported!")
+  }
+  
+  override func removeAll(keepCapacity: Bool) {
+    fatalError("Modifying proxy array is not supported!")
+  }
+  
+  override subscript(index: Int) -> U {
+    get {
+      return self.mappedElems[index].value
+        // return mapf(sourceArray[index], index).value
+    }
+    set(newObject) {
+      fatalError("Modifying proxy array is not supported!")
+    }
+  }
+}
+
+
 func indexOfFirstEqualOrLargerThan(x: Int, array: [Int]) -> Int {
   var idx: Int = -1
   for (index, element) in enumerate(array) {
@@ -806,6 +994,25 @@ public extension DynamicArray
   public func filter(f: T -> Bool) -> DynamicArray<T> {
     return _filter(self, f)
   }
+
+    public func mapDyn<U>(f: T -> Dynamic<U>) -> DynamicArray<U> {
+      let mapf = { (o: T, i: Int) -> Dynamic<U> in f(o) }
+      return DynamicArrayMapProxy2(sourceArray: self, mapf: mapf)
+    }
+  
+  public func dynFirst() -> Dynamic<T?> {
+    var dynFirst = InternalDynamic(self.first)
+    let bond = ArrayBond<T>()
+    bond.bind(self, fire: false)
+    dynFirst.retain(bond)
+    
+    bond.didInsertListener = { _ in dynFirst.value = self.first }
+    bond.didRemoveListener = { _ in dynFirst.value = self.first }
+    bond.didUpdateListener = { _ in dynFirst.value = self.first }
+    bond.didResetListener = { _ in dynFirst.value = self.first }
+    return dynFirst
+  }
+
 }
 
 // MARK: Map
