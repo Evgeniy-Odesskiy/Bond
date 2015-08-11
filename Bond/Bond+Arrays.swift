@@ -418,6 +418,7 @@ private class DynamicArrayMapProxy2<T, U>: DynamicArray<U> {
     self.bond = ArrayBond<T>()
     self.bond.bind(sourceArray, fire: false)
     super.init([])
+//    self.dispatchDidUpdate([1])
     
     for (i, val) in enumerate(sourceArray) {
       let mappedElem = self.mapf(val, i)
@@ -836,6 +837,281 @@ private class DynamicArrayFilterProxy<T>: DynamicArray<T> {
   }
 }
 
+private class DynamicArrayFilterProxy2<T>: DynamicArray<T> {
+  private unowned var sourceArray: DynamicArray<T>
+  private var pointers: [Int]
+  private var filterf: T -> Dynamic<Bool>
+  private let bond: ArrayBond<T>
+  
+  private var mappedElems = [Dynamic<Bool>]()
+  private var elemsBonds = [Bond<Bool>]()
+  
+  private init(sourceArray: DynamicArray<T>, filterf: T -> Dynamic<Bool>) {
+    self.sourceArray = sourceArray
+    self.filterf = filterf
+    self.bond = ArrayBond<T>()
+    self.bond.bind(sourceArray, fire: false)
+    
+    self.pointers = DynamicArrayFilterProxy2.pointersFromSource(sourceArray, filterf: filterf)
+    
+    super.init([])
+    
+    for (i, element) in enumerate(self.sourceArray) {
+      let elemField = self.filterf(element)
+      var elemBond = Bond<Bool>()
+      elemBond.listener = { nawValue in
+        self.dispatchChanges([find(self.elemsBonds, elemBond)!])
+      }
+      elemField.bindTo(elemBond, fire: false)
+      self.elemsBonds.insert(elemBond, atIndex: i)
+    }
+    
+    bond.didInsertListener = { [unowned self] array, indices in
+      var insertedIndices: [Int] = []
+      var pointers = self.pointers
+      
+      for idx in indices {
+        
+        for (index, element) in enumerate(pointers) {
+          if element >= idx {
+            pointers[index] = element + 1
+          }
+        }
+        
+        let element = array[idx]
+        if filterf(element).value {
+          let position = indexOfFirstEqualOrLargerThan(idx, pointers)
+          pointers.insert(idx, atIndex: position)
+          insertedIndices.append(position)
+        
+          //
+          let elemField = self.filterf(element)
+          var elemBond = Bond<Bool>()
+          elemBond.listener = { newValue in
+            self.dispatchChanges([find(self.elemsBonds, elemBond)!])
+          };
+          elemField.bindTo(elemBond, fire: false)
+          self.elemsBonds.insert(elemBond, atIndex: position)
+         
+        }
+        
+      }
+      
+      if insertedIndices.count > 0 {
+        self.dispatchWillInsert(insertedIndices)
+      }
+      
+      self.pointers = pointers
+      
+      if insertedIndices.count > 0 {
+        self.dispatchDidInsert(insertedIndices)
+      }
+    }
+    
+    bond.willRemoveListener = { [unowned self] array, indices in
+      var removedIndices: [Int] = []
+      var pointers = self.pointers
+      
+      for idx in reverse(indices) {
+        
+        if let idx = find(pointers, idx) {
+          pointers.removeAtIndex(idx)
+          removedIndices.append(idx)
+          self.elemsBonds[idx].unbindAll()
+          self.elemsBonds.removeAtIndex(idx)
+        }
+        
+        for (index, element) in enumerate(pointers) {
+          if element >= idx {
+            pointers[index] = element - 1
+          }
+        }
+      }
+      
+      if removedIndices.count > 0 {
+        self.dispatchWillRemove(reverse(removedIndices))
+      }
+      
+      self.pointers = pointers
+      
+      if removedIndices.count > 0 {
+        self.dispatchDidRemove(reverse(removedIndices))
+      }
+    }
+    //
+    //добавить удаление и добавление ибо здесь присваивается и удаляется по индексу
+    bond.didUpdateListener = { [unowned self] array, indices in
+      
+      self.dispatchChanges(indices)
+    }
+    
+    bond.willResetListener = { [unowned self] array in
+      self.dispatchWillReset()
+    }
+    
+    bond.didResetListener = { [unowned self] array in
+      self.pointers = DynamicArrayFilterProxy2.pointersFromSource(array, filterf: filterf)
+      self.dispatchDidReset()
+    }
+  }
+  
+  func dispatchChanges(indices: [Int]) {
+    
+    let idx = indices[0]
+    let element = self.sourceArray[idx]
+    
+    var insertedIndices: [Int] = []
+    var removedIndices: [Int] = []
+    var updatedIndices: [Int] = []
+    var pointers = self.pointers
+    
+    if let idx = find(pointers, idx) {
+      if filterf(element).value {
+        // update
+        updatedIndices.append(idx)
+      } else {
+        // remove
+        pointers.removeAtIndex(idx)
+        removedIndices.append(idx)
+      }
+    } else {
+      //
+      let elemField = self.filterf(element)
+      var elemBond = Bond<Bool>()
+      elemBond.listener = { newValue in
+        self.dispatchChanges([idx])
+//        self.sourceArray.dispatchDidUpdate([idx])    //??
+      };
+      elemField.bindTo(elemBond, fire: false)
+      self.elemsBonds.insert(elemBond, atIndex: idx)
+      self.mappedElems.insert(elemField, atIndex: idx)
+      
+      if filterf(element).value {
+        let position = indexOfFirstEqualOrLargerThan(idx, pointers)
+        pointers.insert(idx, atIndex: position)
+        insertedIndices.append(position)
+      } else {
+        // nothing
+      }
+    }
+    
+    if insertedIndices.count > 0 {
+      self.dispatchWillInsert(insertedIndices)
+    }
+    
+    if removedIndices.count > 0 {
+      self.dispatchWillRemove(removedIndices)
+    }
+    
+    if updatedIndices.count > 0 {
+      self.dispatchWillUpdate(updatedIndices)
+    }
+    
+    self.pointers = pointers
+    
+    if updatedIndices.count > 0 {
+      self.dispatchDidUpdate(updatedIndices)
+    }
+    
+    if removedIndices.count > 0 {
+      self.dispatchDidRemove(removedIndices)
+    }
+    
+    if insertedIndices.count > 0 {
+      self.dispatchDidInsert(insertedIndices)
+    }
+  }
+  
+  class func pointersFromSource(sourceArray: DynamicArray<T>, filterf: T -> Dynamic<Bool>) -> [Int] {
+    var pointers = [Int]()
+    for (index, element) in enumerate(sourceArray) {
+      if filterf(element).value {
+        pointers.append(index)
+      }
+    }
+    return pointers
+  }
+  
+  override var value: [T] {
+    set(newValue) {
+      fatalError("Modifying proxy array is not supported!")
+    }
+    get {
+      fatalError("Getting proxy array value is not supported!")
+    }
+  }
+  
+  private override var count: Int {
+    return pointers.count
+  }
+  
+  private override var capacity: Int {
+    return pointers.capacity
+  }
+  
+  private override var isEmpty: Bool {
+    return pointers.isEmpty
+  }
+  
+  private override var first: T? {
+    if let first = pointers.first {
+      return sourceArray[first]
+    } else {
+      return nil
+    }
+  }
+  
+  private override var last: T? {
+    if let last = pointers.last {
+      return sourceArray[last]
+    } else {
+      return nil
+    }
+  }
+  
+  override private func setArray(newValue: [T]) {
+    fatalError("Modifying proxy array is not supported!")
+  }
+  
+  override private func append(newElement: T) {
+    fatalError("Modifying proxy array is not supported!")
+  }
+  
+  private override func append(array: Array<T>) {
+    fatalError("Modifying proxy array is not supported!")
+  }
+  
+  override private func removeLast() -> T {
+    fatalError("Modifying proxy array is not supported!")
+  }
+  
+  override private func insert(newElement: T, atIndex i: Int) {
+    fatalError("Modifying proxy array is not supported!")
+  }
+  
+  private override func splice(array: Array<T>, atIndex i: Int) {
+    fatalError("Modifying proxy array is not supported!")
+  }
+  
+  override private func removeAtIndex(index: Int) -> T {
+    fatalError("Modifying proxy array is not supported!")
+  }
+  
+  override private func removeAll(keepCapacity: Bool) {
+    fatalError("Modifying proxy array is not supported!")
+  }
+  
+  override private subscript(index: Int) -> T {
+    get {
+      return sourceArray[pointers[index]]
+    }
+    set {
+      fatalError("Modifying proxy array is not supported!")
+    }
+  }
+}
+
+
 // MARK: Dynamic Array DeliverOn Proxy
 
 private class DynamicArrayDeliverOnProxy<T>: DynamicArray<T> {
@@ -995,10 +1271,14 @@ public extension DynamicArray
     return _filter(self, f)
   }
 
-    public func mapDyn<U>(f: T -> Dynamic<U>) -> DynamicArray<U> {
-      let mapf = { (o: T, i: Int) -> Dynamic<U> in f(o) }
-      return DynamicArrayMapProxy2(sourceArray: self, mapf: mapf)
-    }
+  public func mapDyn<U>(f: T -> Dynamic<U>) -> DynamicArray<U> {
+    let mapf = { (o: T, i: Int) -> Dynamic<U> in f(o) }
+    return DynamicArrayMapProxy2(sourceArray: self, mapf: mapf)
+  }
+  
+  public func filterDyn(f: T -> Dynamic<Bool>) -> DynamicArray<T> {
+    return DynamicArrayFilterProxy2(sourceArray: self, filterf: f)
+  }
   
   public func dynFirst() -> Dynamic<T?> {
     var dynFirst = InternalDynamic(self.first)

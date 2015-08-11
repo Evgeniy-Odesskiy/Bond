@@ -44,7 +44,7 @@ class MyTests: XCTestCase {
   
   func testArrayStudy() {
     var sourceArray = DynamicArray(["one", "two"])
-    var targetArray = DynamicArray(["one"])
+    var targetArray = DynamicArray(["four"])
     sourceArray ->> targetArray
     XCTAssertTrue(targetArray[0] == "one" && targetArray[1] == "two", "arrays are not equal")
   }
@@ -56,5 +56,57 @@ class MyTests: XCTestCase {
             // Put the code you want to measure the time of here.
         }
     }
+  
+  func testFilter() {
+   
+    class Door {
+      var isOpen: Dynamic<Bool>
+      init(isOpen: Bool = false) {
+        self.isOpen = Dynamic<Bool>(isOpen)
+      }
+    }
     
+    let firstDoor = Door(isOpen: true)
+    let secondDoor = Door()
+    var doors = DynamicArray([firstDoor, secondDoor])
+    var openedDoors = doors.filterDyn() { $0.isOpen }
+    let firstOpenedDoor = openedDoors.dynFirst()
+//    XCTAssertTrue(openedDoors.count == 1, "[Doors]false1, opened doorsCount = \(openedDoors.count)")
+//    firstDoor.isOpen.value = false
+//    XCTAssertTrue(openedDoors.count == 0, "[Doors]false1, opened doorsCount = \(openedDoors.count)")
+//    secondDoor.isOpen.value = true
+//    XCTAssertTrue(openedDoors.count == 1, "[Doors]false1, opened doorsCount = \(openedDoors.count)")
+//    let doorThree = Open(isOpen: true)
+//    doors[0] = doorThree
+//    XCTAssertTrue(openedDoors.count == 2, "[Doors]false1, opened doorsCount = \(openedDoors.count)")
+//    doorThree.isOpen.value = false
+//    XCTAssertTrue(openedDoors.count == 1, "[Doors]false1, opened doorsCount = \(openedDoors.count)")
+    
+    XCTAssertTrue(firstOpenedDoor.value!.isOpen.value)
+    firstDoor.isOpen.value = false
+    XCTAssertNil(firstOpenedDoor.value)
+    
+//    let doorThree = Open(isOpen: true)
+//    doors[0] = doorThree
+//    doors.append(doorThree)
+//    firstDoor.isOpen.value = false
+//    doorThree.isOpen.value = false
+//    XCTAssertTrue(openedDoors.count == 0, "[Doors]false2, opened doorsCount = \(openedDoors.count)")
+  }
+
+  func testMap() {
+    var sourceArray = DynamicArray([Dynamic("one"), Dynamic("two")])
+    var mappedArray = sourceArray.mapDyn() {
+      Dynamic<String>("\($0.value)\($0.value)")
+    }
+
+    let mappedFirst = mappedArray.dynFirst()
+    
+    sourceArray.first!.value = "four"
+    XCTAssertTrue(mappedFirst.value == "fourfour", "elem was not changed")
+  }
+  
+  
+
+
 }
