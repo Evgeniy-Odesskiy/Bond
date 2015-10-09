@@ -30,20 +30,20 @@ import UIKit
 private var titleDynamicHandleUINavigationItem: UInt8 = 0;
 
 extension UINavigationItem : Bondable {
-    public var dynTitle: Dynamic<String> {
-        if let d: AnyObject = objc_getAssociatedObject(self, &titleDynamicHandleUINavigationItem) {
-            return (d as? Dynamic<String>)!
-        } else {
-            let d = InternalDynamic<String>(self.title ?? "")
-            let bond = Bond<String>() { [weak self] v in if let s = self { s.title = v } }
-            d.bindTo(bond, fire: false, strongly: false)
-            d.retain(bond)
-            objc_setAssociatedObject(self, &titleDynamicHandleUINavigationItem, d, objc_AssociationPolicy(OBJC_ASSOCIATION_RETAIN_NONATOMIC))
-            return d
-        }
+  public var dynTitle: Dynamic<String> {
+    if let d: AnyObject = objc_getAssociatedObject(self, &titleDynamicHandleUINavigationItem) {
+      return (d as? Dynamic<String>)!
+    } else {
+      let d = InternalDynamic<String>(self.title ?? "")
+      let bond = Bond<String>() { [weak self] v in if let s = self { s.title = v } }
+      d.bindTo(bond, fire: false, strongly: false)
+      d.retain(bond)
+      objc_setAssociatedObject(self, &titleDynamicHandleUINavigationItem, d, objc_AssociationPolicy.OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+      return d
     }
-    
-    public var designatedBond: Bond<String> {
-        return self.dynTitle.valueBond
-    }
+  }
+  
+  public var designatedBond: Bond<String> {
+    return self.dynTitle.valueBond
+  }
 }

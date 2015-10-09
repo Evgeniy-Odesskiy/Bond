@@ -635,6 +635,8 @@
 		69491BA51A7C217100A13B6B /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				LastSwiftMigration = 0700;
+				LastSwiftUpdateCheck = 0700;
 				LastUpgradeCheck = 0610;
 				ORGANIZATIONNAME = Bond;
 				TargetAttributes = {
@@ -1206,6 +1208,7 @@
 				153BCDC51B74D77E00B3FC9B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		69491BA81A7C217100A13B6B /* Build configuration list for PBXProject "Bond" */ = {
 			isa = XCConfigurationList;

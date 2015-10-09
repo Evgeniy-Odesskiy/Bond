@@ -34,7 +34,7 @@ func ==(op0: TableOperation, op1: TableOperation) -> Bool {
   }
 }
 
-extension TableOperation: Equatable, Printable {
+extension TableOperation: Equatable, CustomStringConvertible {
   var description: String {
     switch self {
     case let .InsertRows(indexPaths):
@@ -57,18 +57,18 @@ extension TableOperation: Equatable, Printable {
 
 class TestTableView: UITableView {
   var operations = [TableOperation]()
-  override func insertRowsAtIndexPaths(indexPaths: [AnyObject], withRowAnimation animation: UITableViewRowAnimation) {
-    operations.append(.InsertRows(indexPaths as! [NSIndexPath]))
+  override func insertRowsAtIndexPaths(indexPaths: [NSIndexPath], withRowAnimation animation: UITableViewRowAnimation) {
+    operations.append(.InsertRows(indexPaths ))
     super.insertRowsAtIndexPaths(indexPaths, withRowAnimation: animation)
   }
   
-  override func deleteRowsAtIndexPaths(indexPaths: [AnyObject], withRowAnimation animation: UITableViewRowAnimation) {
-    operations.append(.DeleteRows(indexPaths as! [NSIndexPath]))
+  override func deleteRowsAtIndexPaths(indexPaths: [NSIndexPath], withRowAnimation animation: UITableViewRowAnimation) {
+    operations.append(.DeleteRows(indexPaths ))
     super.deleteRowsAtIndexPaths(indexPaths, withRowAnimation: animation)
   }
   
-  override func reloadRowsAtIndexPaths(indexPaths: [AnyObject], withRowAnimation animation: UITableViewRowAnimation) {
-    operations.append(.ReloadRows(indexPaths as! [NSIndexPath]))
+  override func reloadRowsAtIndexPaths(indexPaths: [NSIndexPath], withRowAnimation animation: UITableViewRowAnimation) {
+    operations.append(.ReloadRows(indexPaths ))
     super.reloadRowsAtIndexPaths(indexPaths, withRowAnimation: animation)
   }
   

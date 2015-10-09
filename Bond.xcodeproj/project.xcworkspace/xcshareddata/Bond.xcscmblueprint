@@ -1,0 +1,30 @@
+{
+  "DVTSourceControlWorkspaceBlueprintPrimaryRemoteRepositoryKey" : "D78924967B5ECB0A1D20E197FAB93ACBFA47F0D1",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyRepositoryLocationsKey" : {
+
+  },
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyStatesKey" : {
+    "D78924967B5ECB0A1D20E197FAB93ACBFA47F0D1" : 0,
+    "94F411BEA7CD7F7D54B2DFCCFFCF4893341FD745" : 0
+  },
+  "DVTSourceControlWorkspaceBlueprintIdentifierKey" : "04448388-870D-441E-97EB-4CF056B49C62",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyPathsKey" : {
+    "D78924967B5ECB0A1D20E197FAB93ACBFA47F0D1" : "Bond\/",
+    "94F411BEA7CD7F7D54B2DFCCFFCF4893341FD745" : ""
+  },
+  "DVTSourceControlWorkspaceBlueprintNameKey" : "Bond",
+  "DVTSourceControlWorkspaceBlueprintVersion" : 204,
+  "DVTSourceControlWorkspaceBlueprintRelativePathToProjectKey" : "Bond.xcodeproj",
+  "DVTSourceControlWorkspaceBlueprintRemoteRepositoriesKey" : [
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "ssh:\/\/main-new\/symway\/dzemployee-client.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "94F411BEA7CD7F7D54B2DFCCFFCF4893341FD745"
+    },
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "github.com:Evgeniy-Odesskiy\/Bond.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "D78924967B5ECB0A1D20E197FAB93ACBFA47F0D1"
+    }
+  ]
+}

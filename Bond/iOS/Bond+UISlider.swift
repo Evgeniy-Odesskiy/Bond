@@ -27,7 +27,7 @@
 
 import UIKit
 
-@objc class SliderDynamicHelper
+class SliderDynamicHelper
 {
   weak var control: UISlider?
   var listener: (Float -> Void)?
@@ -37,7 +37,7 @@ import UIKit
     control.addTarget(self, action: Selector("valueChanged:"), forControlEvents: .ValueChanged)
   }
   
-  func valueChanged(slider: UISlider) {
+  dynamic func valueChanged(slider: UISlider) {
     self.listener?(slider.value)
   }
   
@@ -79,7 +79,7 @@ extension UISlider /*: Dynamical, Bondable */ {
       
       d.bindTo(bond, fire: false, strongly: false)
       d.retain(bond)
-      objc_setAssociatedObject(self, &valueDynamicHandleUISlider, d, objc_AssociationPolicy(OBJC_ASSOCIATION_RETAIN_NONATOMIC))
+      objc_setAssociatedObject(self, &valueDynamicHandleUISlider, d, objc_AssociationPolicy.OBJC_ASSOCIATION_RETAIN_NONATOMIC)
       return d
     }
   }

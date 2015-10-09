@@ -106,6 +106,27 @@ class MyTests: XCTestCase {
     XCTAssertTrue(mappedFirst.value == "fourfour", "elem was not changed")
   }
   
+  func testDZ() {
+   
+    class Door {
+      var colour: Dynamic<Bool>?
+      var alert: Dynamic<String>?
+      var isOpen: Dynamic<Bool>
+      init(isOpen: Bool = false) {
+        self.isOpen = Dynamic<Bool>(isOpen)
+      }
+    }
+    
+    class House {
+      var door: DynamicArray<Door>
+      init (door: DynamicArray<Door>) {
+        self.door = door
+      }
+    }
+    
+    let house = House(door: DynamicArray([Door]()))
+    
+  }
   
 
 

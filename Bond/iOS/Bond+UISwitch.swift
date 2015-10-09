@@ -27,7 +27,7 @@
 
 import UIKit
 
-@objc class SwitchDynamicHelper
+class SwitchDynamicHelper
 {
   weak var control: UISwitch?
   var listener: (Bool -> Void)?
@@ -37,7 +37,7 @@ import UIKit
     control.addTarget(self, action: Selector("valueChanged:"), forControlEvents: .ValueChanged)
   }
   
-  func valueChanged(control: UISwitch) {
+  dynamic func valueChanged(control: UISwitch) {
     self.listener?(control.on)
   }
   
@@ -78,7 +78,7 @@ extension UISwitch /*: Dynamical, Bondable */ {
       
       d.bindTo(bond, fire: false, strongly: false)
       d.retain(bond)
-      objc_setAssociatedObject(self, &onDynamicHandleUISwitch, d, objc_AssociationPolicy(OBJC_ASSOCIATION_RETAIN_NONATOMIC))
+      objc_setAssociatedObject(self, &onDynamicHandleUISwitch, d, objc_AssociationPolicy.OBJC_ASSOCIATION_RETAIN_NONATOMIC)
       return d
     }
   }
