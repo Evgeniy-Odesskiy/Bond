@@ -859,7 +859,8 @@ private class DynamicArrayFilterProxy2<T>: DynamicArray<T> {
     self.bond = ArrayBond<T>()
     self.bond.bind(sourceArray, fire: false)
     
-    self.pointers = DynamicArrayFilterProxy2.pointersFromSource(sourceArray, filterf: filterf)
+    self.pointers = [Int]()
+//    self.pointers = DynamicArrayFilterProxy2.pointersFromSource(sourceArray, filterf: filterf)
     
     super.init([])
     
@@ -871,6 +872,11 @@ private class DynamicArrayFilterProxy2<T>: DynamicArray<T> {
       }
       elemField.bindTo(elemBond, fire: false)
       self.elemsBonds.insert(elemBond, atIndex: i)
+      
+      //pointers
+      if elemField.value {
+        self.pointers.append(i)
+      }
     }
     
     bond.didInsertListener = { [unowned self] array, indices in
