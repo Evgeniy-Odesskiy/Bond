@@ -413,7 +413,6 @@ private class DynamicArrayMapProxy2<T, U>: DynamicArray<U> {
   
   
   private init(sourceArray: DynamicArray<T>, mapf: (T, Int) -> Dynamic<U>) {
-    print("[BOND] mapDyn instantiated")
     self.sourceArray = sourceArray
     self.mapf = mapf
     self.bond = ArrayBond<T>()
@@ -594,7 +593,6 @@ private class DynamicArrayMapProxy2<T, U>: DynamicArray<U> {
     for bond in self.elemsBonds {
       bond.unbindAll()
     }
-    print("[BOND] mapDyn dealocated")
   }
 }
 
@@ -856,7 +854,6 @@ private class DynamicArrayFilterProxy2<T>: DynamicArray<T> {
   private var elemsBonds = [Bond<Bool>]()
   
   private init(sourceArray: DynamicArray<T>, filterf: T -> Dynamic<Bool>) {
-    print("[BOND] filterDyn instantiated")
     self.sourceArray = sourceArray
     self.filterf = filterf
     self.bond = ArrayBond<T>()
@@ -1124,7 +1121,6 @@ private class DynamicArrayFilterProxy2<T>: DynamicArray<T> {
     for bond in self.elemsBonds {
       bond.unbindAll()
     }
-    print("[BOND] filterDyn dealocated")
   }
 }
 
